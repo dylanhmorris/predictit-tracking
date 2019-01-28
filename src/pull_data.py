@@ -24,7 +24,7 @@ import sys
 
 # global url/path parameters 
 api_prefix = "https://www.predictit.org/api/marketdata/markets/"
-outdir = "../out"
+outdir = "../dat"
 csv_name = "candidate_win_probabilities.csv"
 csv_path = os.path.join(outdir, csv_name)
 
@@ -142,9 +142,9 @@ def pull_and_save_data(csv_path=csv_path):
 if __name__ == "__main__":
     script_path = os.path.relpath(sys.argv[0])
     if 'src' in script_path:
-        run_outdir = "out"
+        run_outdir = "dat"
     else:
-        run_outdir = "../out"
+        run_outdir = "../dat"
     out_path = os.path.join(run_outdir, csv_name)
         
     pull_and_save_data(csv_path=out_path)
