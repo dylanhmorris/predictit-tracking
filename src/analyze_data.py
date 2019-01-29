@@ -15,9 +15,10 @@ data['whenPulled'] = pd.to_datetime(data['whenPulled'])
 figpath = "../out/conditional_winprobs.pdf"
 
 def conditional_prob_barplot(data=data):
-
     has_cond = data[data['probPresidentGivenNominee'].notna()]
-    has_cond = has_cond.sort_values(by='probPresidentGivenNominee')
+    by_cand = has_cond.groupby('candidate')
+    by_cand = by_cand.apply(lambda grp: grp.nlargest(1, 'whenPulled'))
+    by_cand = by_cand.sort_values(by='probPresidentGivenNominee')
 
     fig_width = 15
     fig_height = 4
@@ -29,17 +30,18 @@ def conditional_prob_barplot(data=data):
     }
 
     colors = [party_cmap.get(party, 'grey') for
-              party in has_cond['party']]
-    
+              party in by_cand['party']]
+
+    print(by_cand[['candidate', 'probPresidentGivenNominee']])
     sns.barplot(
-        data=has_cond,
+        data=by_cand,
         x='candidate',
         y='probPresidentGivenNominee',
         palette=colors,
         ax=ax)
     
     xticklabs = ['\n'.join(str(lab).split())
-                 for lab in has_cond['candidate']]
+                 for lab in by_cand['candidate']]
 
     ax.set_ylabel("implied win probability\nif nominated",
                   fontsize='x-large')
@@ -48,6 +50,7 @@ def conditional_prob_barplot(data=data):
     ax.set_xticklabels(xticklabs,
                        fontsize='medium')
     ax.set_ylim([0, 1])
+    ax.set_yticks([0, 0.25, 0.5, 0.75, 1])
     
     fig.tight_layout()
 
