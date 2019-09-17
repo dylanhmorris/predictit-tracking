@@ -24,3 +24,9 @@ mpl.rcParams['legend.frameon'] = True
 mpl.rcParams['legend.fancybox'] = True
 mpl.rcParams['legend.framealpha'] = 1
 mpl.rcParams['text.usetex'] = True
+
+party_cmap = {
+        'dem': '#2062cc', # nicer blue than default
+        'gop': '#ff3535'  # likewise nicer red
+}
+

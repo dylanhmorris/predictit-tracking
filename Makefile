@@ -7,4 +7,4 @@ datapull:
 	./src/pull_data.py
 
 out/conditional_winprobs.pdf: dat/candidate_win_probabilities.csv
-	./src/analyze_data.py
+	./src/conditional_winprob_plot.py
