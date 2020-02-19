@@ -2,29 +2,35 @@
 
 ##########################################
 # name: candidate_timeseries_plot.py
-# date: 2019-01-30
 # author: Dylan Morris <dhmorris@princeton.edu>
 # description: generate a plot of conditional
 # win probabilities for a single candidate
 # as a function of time
 # 
 ###########################################
+import sys
+import os
 import pandas as pd
+from pandas.plotting import register_matplotlib_converters
 import plotting_style as ps
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
+register_matplotlib_converters()
 import datetime
 
 from analyze_data import read_data, get_cond_winprob_errors
 from analyze_data import data_filename, data_dir
 
+
 def candidate_timeseries_plot(candidate,
                               data,
                               nom_err=0.01,
-                              pres_err=0.01):
+                              pres_err=0.01,
+                              x_padding = 5,
+                              figsize = (10, 5)):
     
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=figsize)
 
     has_cond = data[data['probPresidentGivenNominee'].notna()]
     has_cond = has_cond[has_cond['whenPulled'].notna()]
@@ -54,11 +60,47 @@ def candidate_timeseries_plot(candidate,
         color=colors,
         fmt='none')
 
-    ax.set_xlim(left=is_cand['whenPulled'].min() - datetime.timedelta(days=1),
-                right=datetime.datetime.utcnow())
+    ax.set_xlim(left = (is_cand['whenPulled'].min() -
+                        datetime.timedelta(days = x_padding)),
+                right = (datetime.datetime.utcnow() +
+                         datetime.timedelta(days = x_padding)))
+    ax.set_ylim([0, 1])
     ax.set_xlabel("Date")
     ax.set_ylabel("implied probability of winning\n"
                   "presidency if nominated")
     ax.set_title("Conditional win probabilities\n"
                  "over time for {}".format(candidate))
     fig.tight_layout()
+    return fig
+
+
+if __name__ == "__main__":
+    script_path = os.path.relpath(sys.argv[0])
+    if 'src' in script_path:
+        run_data_dir = "dat"
+        run_fig_dir = "out"
+    else:
+        run_data_dir = "../dat"
+        run_fig_dir = "../out"
+
+    if len(sys.argv) < 2:
+        print("USAGE: {} <candidate> <output path>\n\n"
+              "".format(sys.argv[0]))
+    else:
+        candidate = sys.argv[1]
+        fig_path = sys.argv[2]
+
+        print(fig_path)
+        print("searching for candidate {}...".format(candidate))
+        data = read_data(data_filename, run_data_dir)
+        candidate_name_instances = data[data['candidate'].str.contains(candidate)]['candidate']
+        if candidate_name_instances.empty:
+            raise ValueError('Candidate matching name or '
+                             'partial name "{}" not found'
+                             ''.format(candidate))
+        else:
+            candidate_name = candidate_name_instances.iloc[0]
+            print('Found candidate {}'.format(candidate_name))
+            fig = candidate_timeseries_plot(candidate_name,
+                                            data)    
+            fig.savefig(fig_path)

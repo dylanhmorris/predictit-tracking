@@ -24,6 +24,7 @@ import sys
 
 # global url/path parameters 
 api_prefix = "https://www.predictit.org/api/marketdata/markets/"
+all_market_api = "https://www.predictit.org/api/marketdata/all/"
 outdir = "../dat"
 csv_name = "candidate_win_probabilities.csv"
 csv_path = os.path.join(outdir, csv_name)
@@ -32,13 +33,18 @@ dem_nominee_id = 3633
 gop_nominee_id = 3653
 pres_winner_id = 3698
 
+default_markets = {
+    "dem-nominee": dem_nominee_id,
+    "gop-nominee": gop_nominee_id,
+    "pres-winner": pres_winner_id}
+
 def mkdirp(file_path):
     directory = os.path.dirname(file_path)
     if not os.path.exists(directory):
         os.makedirs(directory)
 
 
-def get_market(market_id, api_prefix=api_prefix):
+def get_market(market_id, api_prefix = api_prefix):
     full_url = urllib.request.urljoin(api_prefix, str(market_id))
     response = urllib.request.urlopen(full_url)
     txtdata = response.read()
@@ -48,6 +54,16 @@ def get_market(market_id, api_prefix=api_prefix):
                          "{}".format(market_id))
     return result
 
+def get_all_markets(all_market_api = all_market_api):
+    response = urllib.request.urlopen(all_market_api)
+    txtdata = response.read()
+    result = json.loads(txtdata)
+    if result is None:
+        raise ValueError("No parseable market data "
+                         "found for market api "
+                         "{}".format(all_market_api))
+    return result['markets']
+
 
 def prune_market(market_dict, min_price):
     return {contract['name']: contract for
@@ -55,16 +71,12 @@ def prune_market(market_dict, min_price):
             if contract['bestBuyYesCost'] > min_price}
 
 
-def get_latest_prices(min_price = 0.01):
+def get_latest_prices(min_price = 0.01,
+                      markets = default_markets):
 
-    markets = {
-        "dem-nominee": get_market(dem_nominee_id),
-        "gop-nominee": get_market(gop_nominee_id),
-        "pres-winner": get_market(pres_winner_id)
-    }
-
-    markets = {market_name: prune_market(market, min_price)
-               for market_name, market in markets.items()}
+    markets = {market_name: prune_market(get_market(market_id),
+                                         min_price)
+               for market_name, market_id in markets.items()}
 
     return markets
 

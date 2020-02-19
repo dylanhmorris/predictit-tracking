@@ -2,7 +2,6 @@
 
 ##########################################
 # name: conditional_winprob_plot.py
-# date: 2019-01-30
 # author: Dylan Morris <dhmorris@princeton.edu>
 # description: generate a plot of conditional
 # win probabilities for all candidates
@@ -192,9 +191,13 @@ if __name__ == "__main__":
     else:
         run_data_dir = "../dat"
         run_fig_dir = "../out"
-        
-    fig_path = os.path.join(run_fig_dir, fig_filename)
 
+    if len(sys.argv) > 1:
+        fig_path = sys.argv[1]
+    else:
+        fig_path = os.path.join(run_fig_dir, fig_filename)
+
+    print(fig_path)
     data = read_data(data_filename, run_data_dir)
     conditional_prob_plot(data,
                           figpath=fig_path)    
